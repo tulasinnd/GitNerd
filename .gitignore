@@ -2,6 +2,9 @@
 guide/
 learnings/
 
+# files
+note.txt
+
 # Python
 __pycache__/
 *.py[cod]
