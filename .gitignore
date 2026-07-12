@@ -4,6 +4,7 @@ learnings/
 
 # files
 note.txt
+.env
 
 # Python
 __pycache__/
