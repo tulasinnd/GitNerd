@@ -38,3 +38,6 @@ dist/
 
 # Logs
 *.log
+
+#frontend
+node_modules/
