@@ -1,5 +1,5 @@
-import './App.css'
-import { useEffect, useState } from "react";
+import "./App.css";
+import { useState } from "react";
 
 function App() {
   const [githubUrl, setGithubUrl] = useState("");
@@ -24,40 +24,67 @@ function App() {
       setError("");
     } catch (err) {
       setResult(null);
-      setError("Failed to connect to backend.");
+      setError("Unable to connect to the backend.");
     }
   }
-return (
-  <div className="app">
-    <h1>GitNerd</h1>
-    <p className="subtitle">
-      AI-powered repository learning and interview platform.
+
+  return (
+    <div className="app">
+      <h1>GitNerd</h1>
+
+      <p className="subtitle">
+        AI-powered repository learning and interview platform.
+      </p>
+
+      <div className="repository-input">
+        <input
+          type="text"
+          placeholder="https://github.com/owner/repository"
+          value={githubUrl}
+          onChange={(e) => setGithubUrl(e.target.value)}
+        />
+
+        <button onClick={validateRepository}>
+          Explore Repository
+        </button>
+      </div>
+
+      {/* Network Error */}
+      {error && <p className="error">{error}</p>}
+
+      {/* Backend Error */}
+      {result && !result.success && (
+        <p className="error">{result.message}</p>
+      )}
+
+      {/* Repository Structure */}
+      {result && result.success && (
+  <div >
+
+    <h2>Repository Analysis</h2>
+
+    <p>
+      Files:
+      {" "}
+      {result.repository_analysis.repository_structure.files.length}
     </p>
 
-    <div className="repository-input">
-      <input
-        type="text"
-        placeholder="https://github.com/owner/repository"
-        value={githubUrl}
-        onChange={(e) => setGithubUrl(e.target.value)}
-      />
+    <p>
+      Directories:
+      {" "}
+      {result.repository_analysis.repository_structure.directories.length}
+    </p>
 
-      <button onClick={validateRepository}>
-        Validate Repository
-      </button>
-    </div>
+    <p>
+      Important Files:
+      {" "}
+      {Object.keys(result.repository_analysis.important_files).join(", ")}
+    </p>
 
-    {error && <p className="error">{error}</p>}
-
-    {result && (
-      <p className={result.valid ? "success" : "error"}>
-        {result.message}
-      </p>
-    )}
   </div>
-);
-
-
+)}
+    </div>
+  );
 }
 
 export default App;
