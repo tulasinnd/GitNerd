@@ -3,11 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from urllib.parse import urlparse
-import pprint
+from fastapi import HTTPException
 
 from ai_engine.repository_access import access_repository
 from ai_engine.repository_analysis import analyze_repository
 from utils.github_utils import extract_owner_repository
+from database.session_manager import create_session, get_session
+from ai_engine.repository_understanding import understand_repository
 
 app = FastAPI(
     title="GitNerd API",
@@ -30,24 +32,66 @@ app.add_middleware(
 class RepositoryRequest(BaseModel):
     github_url: str
 
+# ENDPOINT FOR URL VALIDATION
 @app.post("/repository")
 def validate_repository(request: RepositoryRequest):
 
-    # check ulr through parsing and then extract owner and repository name (dont waste API call for trivial things)
+    # Validate URL without API call
     result = extract_owner_repository(request.github_url)
-    if not result["success"]: # if the url is not a githubrepo then return the error in url
+
+    if not result["success"]:
         return result
+
     owner = result["owner"]
     repository = result["repository"]
 
-    # once url is correct then check url through github API, it will check if exists, is it accessable ... 
+    # Verify repository exists with github API call
     access_repository_result = access_repository(owner, repository)
 
-    # if the above function returns the repo structure then it will go for further analysis like extact readme, configs, technologies...
     if not access_repository_result["success"]:
         return access_repository_result
-    
-    analyze_repository_result = analyze_repository(owner, repository)
 
-    return analyze_repository_result
+    # Analyze repository by collecting info from repo and generate a short analysis summary
+    analyze_repository_result = analyze_repository(
+        owner,
+        repository,
+    )
 
+    # create session
+    session_id = create_session({
+    "owner": owner,
+    "repository": repository,
+    "repository_analysis": analyze_repository_result["repository_analysis"],
+    "repository_summary": analyze_repository_result["repository_summary"],
+    })
+
+    # return summary to frontend
+    return {
+        "success": True,
+        "session_id": session_id,
+        "repository_summary": analyze_repository_result["repository_summary"],
+    }
+
+
+class LearningRequest(BaseModel):
+    session_id: str
+
+# ENDPOINT FOR LEARNING REPO CONTENT FEATURE
+@app.post("/learning")
+def learning(request: LearningRequest):
+
+    session = get_session(request.session_id)
+
+    if session is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
+        )
+
+    understand_result = understand_repository(
+        owner=session["owner"],
+        repository=session["repository"],
+        repository_analysis=session["repository_analysis"],
+    )
+
+    return understand_result

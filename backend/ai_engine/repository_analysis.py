@@ -2,8 +2,10 @@ from utils.github_utils import (
     get_repository_file,
     get_repository_metadata,
     get_repository_contents,
+    get_repository_tree
 )
 
+from .repository_summary import generate_repository_summary
 
 """
 Milestone 2.3 — Repository Analysis
@@ -21,31 +23,26 @@ def analyze_repository(
     repository_analysis = {}
 
     # ----------------------------------------
-    # Task 1: Collect repository structure
+    # Task 1: Collect complete repository structure
     # ----------------------------------------
 
-    response = get_repository_contents(
+    response = get_repository_tree(
         owner,
         repository,
     )
 
-    files = []
-    directories = []
+    repository_tree = []
 
     if response.status_code == 200:
 
-        for item in response.json():
+        for item in response.json()["tree"]:
 
-            if item["type"] == "file":
-                files.append(item["path"])
+            repository_tree.append({
+                "path": item["path"],
+                "type": item["type"],
+            })
 
-            elif item["type"] == "dir":
-                directories.append(item["path"])
-
-    repository_analysis["repository_structure"] = {
-        "files": files,
-        "directories": directories,
-    }
+    repository_analysis["repository_structure"] = repository_tree
 
     # ----------------------------------------
     # Task 2: Collect important repository files
@@ -82,9 +79,12 @@ def analyze_repository(
         if response.status_code == 200:
             collected_files[file_name] = response.text
 
-    repository_analysis["important_files"] = collected_files
+    repository_analysis["configuration_files"] = collected_files
+
+    summary= generate_repository_summary(repository_analysis)
 
     return {
-        "success": True,
-        "repository_analysis": repository_analysis,
+    "success": True,
+    "repository_analysis": repository_analysis,
+    "repository_summary": summary,
     }
