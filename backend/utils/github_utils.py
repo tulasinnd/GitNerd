@@ -82,3 +82,17 @@ def get_repository_contents(
     #pprint.pprint(requests.get(url, headers=headers))
 
     return requests.get(url, headers=headers)
+
+def get_repository_tree(owner: str, repository: str):
+
+    url = (
+        f"https://api.github.com/repos/"
+        f"{owner}/{repository}/git/trees/HEAD?recursive=1"
+    )
+
+    headers = {}
+
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+
+    return requests.get(url, headers=headers)
