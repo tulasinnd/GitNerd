@@ -27,8 +27,12 @@ understand_repository()
 from utils.github_utils import get_repository_file
 import json
 from utils.llm_utils import get_llm
+from .repository_book import create_book
 
 llm = get_llm()
+import json
+
+
 def select_important_files(repository_analysis):
 
     prompt = f"""
@@ -38,7 +42,7 @@ def select_important_files(repository_analysis):
         Repository Information:{repository_analysis}
 
         Your task is to identify the most important SOURCE CODE files that are required
-        to understand how this repository works. select files only present in the above repository, dont invent new files on your own
+        to understand how this repository works. Select files only present in the above repository, don't invent new files on your own.
 
         Rules:
         - Select only source code files.
@@ -53,12 +57,16 @@ def select_important_files(repository_analysis):
         - Ignore test files unless they are essential.
         - Return ONLY a JSON array of file paths.
         - Do not explain your answer.
-
-        """
+    """
 
     response = llm.invoke(prompt)
 
-    result = json.loads(response.content)
+    try:
+        result = json.loads(response.content)
+    except json.JSONDecodeError:
+        raise ValueError(
+            f"LLM returned invalid list of important code files for further analysis.\n\nResponse:\n{response.content}"
+        )
 
     # Normalize the output
     if isinstance(result, str):
@@ -90,14 +98,6 @@ def read_important_files(
 
     return code_files
 
-
-def create_book():
-    # llm will read full view now it has full repo analysis, code files data, now the llm understands everything and generates book of info
-    # about repository
-
-    return 
-
-
 def understand_repository(
     owner,
     repository,
@@ -114,9 +114,9 @@ def understand_repository(
         important_files
     )
 
-    # repository_book = create_book(
-    #     repository_analysis,
-    #     code_files
-    # )
+    repository_book = create_book(
+        repository_analysis,
+        code_files
+    )
 
-    return code_files
+    return repository_book

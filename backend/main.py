@@ -88,6 +88,7 @@ def learning(request: LearningRequest):
             detail="Session not found"
         )
 
+    # deeply understand the repo, finally create a repository book which contains full explanation of repo
     understand_result = understand_repository(
         owner=session["owner"],
         repository=session["repository"],
