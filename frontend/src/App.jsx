@@ -8,7 +8,14 @@ function App() {
   const [sessionId, setSessionId] = useState("");
 
   const [showLearning, setShowLearning] = useState(false);
-  const [learningResult, setLearningResult] = useState(null);
+  const [learningQuestion, setLearningQuestion] = useState("");
+  const [learningMessages, setLearningMessages] = useState([
+    {
+      role: "assistant",
+      content:
+        "Hello! 👋 I've finished studying your repository. Ask me anything about the repository architecture, source code, execution flow, technologies, or implementation details. What would you like to explore first?",
+    },
+  ]);
 
   async function validateRepository() {
     try {
@@ -36,43 +43,77 @@ function App() {
     }
   }
 
- async function learnRepository() {
-  try {
-    const response = await fetch("http://127.0.0.1:8000/learning", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        session_id: sessionId,
-      }),
-    });
+  async function learnRepository() {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/learning", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    // Store the learning response
-    setLearningResult(data);
+      if (data.success) {
+        setShowLearning(true);
 
-    // Show the learning section
-    setShowLearning(true);
-
-    // Smoothly scroll to it
-    setTimeout(() => {
-      document
-        .getElementById("learning-section")
-        ?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-
-  } catch (error) {
-    console.error(error);
+        setTimeout(() => {
+          document
+            .getElementById("learning-section")
+            ?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
-}
+
+  async function sendLearningQuestion() {
+    if (learningQuestion.trim() === "") return;
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/learning/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            session_id: sessionId,
+            question: learningQuestion,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setLearningMessages((previousMessages) => [
+          ...previousMessages,
+          {
+            role: "user",
+            content: learningQuestion,
+          },
+          {
+            role: "assistant",
+            content: data.answer,
+          },
+        ]);
+
+        setLearningQuestion("");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async function interviewRepository() {
     console.log("Interview Simulation");
     console.log("Session ID:", sessionId);
-
-    // Next milestone:
-    // Call POST /interview with the session_id
   }
 
   return (
@@ -82,6 +123,8 @@ function App() {
       <p className="subtitle">
         AI-powered repository learning and interview platform.
       </p>
+
+      {/* Repository Input */}
 
       <div className="repository-input">
         <input
@@ -97,21 +140,26 @@ function App() {
       </div>
 
       {/* Network Error */}
+
       {error && <p className="error">{error}</p>}
 
       {/* Backend Error */}
+
       {result && !result.success && (
         <p className="error">{result.message}</p>
       )}
 
       {/* Repository Summary */}
+
       {result && result.success && (
         <div className="repository-summary">
+
           <h2>Repository Summary</h2>
 
           <p>{result.repository_summary}</p>
 
           <div className="repository-actions">
+
             <button onClick={learnRepository}>
               Learn Repository
             </button>
@@ -119,28 +167,77 @@ function App() {
             <button onClick={interviewRepository}>
               Interview Simulation
             </button>
+
           </div>
+
         </div>
       )}
+
+      {/* Repository Learning */}
+
       {showLearning && (
-      <div id="learning-section" className="learning-section">
-        <div className="learning-header">
-          <h1>📘 Repository Learning</h1>
+        <div
+          id="learning-section"
+          className="learning-section"
+        >
 
-          <p>
-            Welcome to your AI-powered learning workspace.
-            Ask questions, explore the repository, understand the
-            architecture, and learn every part of the project.
-          </p>
-        </div>
+          <div className="learning-header">
+            <h2>📘 Repository Learning</h2>
+          </div>
 
-        <div className="learning-content">
-          {learningResult && (
-            <pre>{JSON.stringify(learningResult, null, 2)}</pre>
-          )}
+          <div className="chat-window">
+
+            {learningMessages.map((message, index) => (
+
+              <div
+                key={index}
+                className={
+                  message.role === "assistant"
+                    ? "assistant-message"
+                    : "user-message"
+                }
+              >
+
+                <div className="message-title">
+                  {message.role === "assistant"
+                    ? "🤖 GitNerd"
+                    : "🙂 You"}
+                </div>
+
+                <div className="message-body">
+                  <p>{message.content}</p>
+                </div>
+
+              </div>
+
+            ))}
+
+          </div>
+
+          <div className="chat-input">
+
+            <input
+              type="text"
+              placeholder="Ask anything about this repository..."
+              value={learningQuestion}
+              onChange={(e) =>
+                setLearningQuestion(e.target.value)
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  sendLearningQuestion();
+                }
+              }}
+            />
+
+            <button onClick={sendLearningQuestion}>
+              Send
+            </button>
+
+          </div>
+
         </div>
-      </div>
-    )}
+      )}
     </div>
   );
 }

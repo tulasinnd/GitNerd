@@ -185,3 +185,209 @@ body {
   word-break: break-word;
   font-family: Consolas, Monaco, monospace;
 }
+
+/* =========================================
+   Repository Learning Section
+========================================= */
+
+.learning-section {
+    margin-top: 40px;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* =========================================
+   Header
+========================================= */
+
+.learning-header {
+    padding: 30px;
+    text-align: center;
+    border-bottom: 1px solid #333;
+}
+
+.learning-header h2 {
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-size: 32px;
+}
+
+.learning-header p {
+    color: #b5b5b5;
+    line-height: 1.7;
+    font-size: 18px;
+}
+
+/* =========================================
+   Chat Window
+========================================= */
+
+.chat-window {
+    background: #181818;
+
+    min-height: 600px;
+    max-height: 650px;
+
+    overflow-y: auto;
+    scroll-behavior: smooth;
+
+    padding: 35px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* =========================================
+   Chat Messages
+========================================= */
+
+.assistant-message {
+    align-self: flex-start;
+
+    width: fit-content;
+    max-width: 70%;
+    min-width: 550px;
+
+    background: #262626;
+
+    border: 1px solid #3b3b3b;
+
+    border-radius: 12px;
+
+    padding: 22px;
+}
+
+.user-message {
+    align-self: flex-end;
+
+    width: fit-content;
+    max-width: 70%;
+
+    background: #2f6fed;
+
+    color: white;
+
+    border-radius: 12px;
+
+    padding: 22px;
+}
+
+.message-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+
+    margin-bottom: 18px;
+}
+
+.message-body {
+    color: #dddddd;
+    line-height: 1.8;
+    font-size: 17px;
+}
+
+.message-body p {
+    margin-bottom: 16px;
+}
+
+.message-body ul {
+    margin-top: 10px;
+    padding-left: 22px;
+}
+
+.message-body li {
+    margin-bottom: 12px;
+}
+
+/* =========================================
+   Chat Input
+========================================= */
+
+.chat-input {
+    display: flex;
+    gap: 15px;
+
+    padding: 22px;
+
+    border-top: 1px solid #333;
+
+    background: #1f1f1f;
+
+    position: sticky;
+    bottom: 0;
+}
+
+.chat-input input {
+    flex: 1;
+
+    padding: 16px 18px;
+
+    border-radius: 10px;
+
+    border: 1px solid #444;
+
+    background: #2b2b2b;
+
+    color: white;
+
+    font-size: 17px;
+
+    outline: none;
+
+    transition: border 0.2s;
+}
+
+.chat-input input::placeholder {
+    color: #888;
+}
+
+.chat-input input:focus {
+    border-color: #5d86ff;
+}
+
+.chat-input button {
+    padding: 16px 32px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #5d86ff;
+
+    color: white;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.chat-input button:hover {
+    background: #4b73eb;
+}
+
+/* =========================================
+   Scrollbar
+========================================= */
+
+.chat-window::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+    background: #1b1b1b;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 20px;
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}

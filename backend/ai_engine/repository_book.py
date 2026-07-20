@@ -270,7 +270,7 @@ def create_book(
     )
 
     # -----------------------------------------
-    # Repository Relationships (Future)
+    # Repository Relationships 
     # -----------------------------------------
 
     repository_relationships = create_repository_relationships(

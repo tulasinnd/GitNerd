@@ -1,13 +1,4 @@
 """
-Repository Understanding
-
-Tasks:
-1. Select important repository files.
-2. Read important repository files.
-3. Understand repository.
-4. Create repository book.
-5. Build vector knowledge base.
-
 understand_repository()
 
 │
@@ -15,8 +6,6 @@ understand_repository()
 ├── select_important_files()
 
 ├── read_important_files()
-
-├── understand_repository_files()
 
 ├── create_repository_book()
 

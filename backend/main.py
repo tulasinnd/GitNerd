@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
-from urllib.parse import urlparse
 from fastapi import HTTPException
 
 from ai_engine.repository_access import access_repository
@@ -10,6 +8,7 @@ from ai_engine.repository_analysis import analyze_repository
 from utils.github_utils import extract_owner_repository
 from database.session_manager import create_session, get_session
 from ai_engine.repository_understanding import understand_repository
+from ai_engine.repository_learning import ask_repository_question
 
 app = FastAPI(
     title="GitNerd API",
@@ -27,7 +26,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 class RepositoryRequest(BaseModel):
     github_url: str
@@ -63,6 +61,7 @@ def validate_repository(request: RepositoryRequest):
     "repository": repository,
     "repository_analysis": analyze_repository_result["repository_analysis"],
     "repository_summary": analyze_repository_result["repository_summary"],
+    "repository_book": None,
     })
 
     # return summary to frontend
@@ -72,11 +71,27 @@ def validate_repository(request: RepositoryRequest):
         "repository_summary": analyze_repository_result["repository_summary"],
     }
 
+# Session Helper
+def get_or_create_repository_book(session):
 
+    if session["repository_book"] is not None:
+        return session["repository_book"]
+
+    repository_book = understand_repository(
+        owner=session["owner"],
+        repository=session["repository"],
+        repository_analysis=session["repository_analysis"],
+    )
+
+    session["repository_book"] = repository_book
+
+    return repository_book
+
+
+# ENDPOINT FOR LEARNING
 class LearningRequest(BaseModel):
     session_id: str
 
-# ENDPOINT FOR LEARNING REPO CONTENT FEATURE
 @app.post("/learning")
 def learning(request: LearningRequest):
 
@@ -88,11 +103,56 @@ def learning(request: LearningRequest):
             detail="Session not found"
         )
 
-    # deeply understand the repo, finally create a repository book which contains full explanation of repo
-    understand_result = understand_repository(
-        owner=session["owner"],
-        repository=session["repository"],
-        repository_analysis=session["repository_analysis"],
+    # Ensure the Repository Book exists
+    get_or_create_repository_book(session)
+
+    return {
+    "success": True
+        }
+
+# endpoint for learning chat
+class LearningChatRequest(BaseModel):
+    session_id: str
+    question: str
+
+# @app.post("/learning/chat")
+# def learning_chat(request: LearningChatRequest):
+
+#     session = get_session(request.session_id)
+
+#     if session is None:
+#         raise HTTPException(
+#             status_code=404,
+#             detail="Session not found"
+#         )
+
+#     # Ensure the Repository Book exists
+#     get_or_create_repository_book(session)
+
+#     return {
+#         "success": True,
+#         "answer": f"You asked: {request.question}"
+#     }
+
+@app.post("/learning/chat")
+def learning_chat(request: LearningChatRequest):
+
+    session = get_session(request.session_id)
+
+    if session is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found"
+        )
+
+    get_or_create_repository_book(session)
+
+    answer = ask_repository_question(
+        repository_book=session["repository_book"],
+        question=request.question,
     )
 
-    return understand_result
+    return {
+        "success": True,
+        "answer": answer,
+    }
