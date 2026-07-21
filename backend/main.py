@@ -62,6 +62,7 @@ def validate_repository(request: RepositoryRequest):
     "repository_analysis": analyze_repository_result["repository_analysis"],
     "repository_summary": analyze_repository_result["repository_summary"],
     "repository_book": None,
+     "learn_chat_history": []
     })
 
     # return summary to frontend
@@ -115,25 +116,6 @@ class LearningChatRequest(BaseModel):
     session_id: str
     question: str
 
-# @app.post("/learning/chat")
-# def learning_chat(request: LearningChatRequest):
-
-#     session = get_session(request.session_id)
-
-#     if session is None:
-#         raise HTTPException(
-#             status_code=404,
-#             detail="Session not found"
-#         )
-
-#     # Ensure the Repository Book exists
-#     get_or_create_repository_book(session)
-
-#     return {
-#         "success": True,
-#         "answer": f"You asked: {request.question}"
-#     }
-
 @app.post("/learning/chat")
 def learning_chat(request: LearningChatRequest):
 
@@ -149,7 +131,22 @@ def learning_chat(request: LearningChatRequest):
 
     answer = ask_repository_question(
         repository_book=session["repository_book"],
+        history=session["learn_chat_history"],
         question=request.question,
+    )
+
+    session["learn_chat_history"].append(
+        {
+            "role": "user",
+            "content": request.question,
+        }
+    )
+
+    session["learn_chat_history"].append(
+        {
+            "role": "assistant",
+            "content": answer,
+        }
     )
 
     return {
