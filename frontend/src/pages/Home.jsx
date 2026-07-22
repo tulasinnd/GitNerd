@@ -12,6 +12,8 @@ function Home() {
   const [loadingRepository, setLoadingRepository] = useState(false);
   const [loadingLearning, setLoadingLearning] = useState(false);
 
+  const [loadingInterview, setLoadingInterview] = useState(false);
+
   async function validateRepository() {
     setError("");
     setResult(null);
@@ -74,9 +76,30 @@ function Home() {
 
   }
 
-  function interviewRepository() {
-    console.log("Interview Simulation");
-    console.log(sessionId);
+  async function interviewRepository() {
+    setLoadingInterview(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/interview", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        window.open(`/interview/${sessionId}`, "_blank");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingInterview(false);
+    }
   }
 
   return (
@@ -131,23 +154,39 @@ function Home() {
                     : "Learn Repository"}
             </button>
 
-            <button onClick={interviewRepository}>
-              Interview Simulation
-            </button>
+              <button
+                  onClick={interviewRepository}
+                  disabled={loadingInterview}
+                >
+                  {loadingInterview
+                    ? "Preparing Interview..."
+                    : "Interview Simulation"}
+                </button>
           </div>
         </div>
       )}
 
       {loadingLearning && (
-    <div className="learning-loading">
-        <div className="spinner"></div>
+          <div className="learning-loading">
+              <div className="spinner"></div>
 
-        <p>
-            GitNerd is reading and understanding the entire repository.
-            This may take a minute depending on the repository size.
-        </p>
-    </div>
-)}
+              <p>
+                  GitNerd is reading and understanding the entire repository.
+                  This may take a minute depending on the repository size.
+              </p>
+          </div>
+      )}
+
+      {loadingInterview && (
+        <div className="learning-loading">
+          <div className="spinner"></div>
+
+          <p>
+            GitNerd is preparing your repository interview.
+            This may take a moment.
+          </p>
+        </div>
+      )}
     </div>
 
   );
